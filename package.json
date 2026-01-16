@@ -1,0 +1,11 @@
+{
+  "name": "bluephes-monorepo",
+  "private": true,
+  "scripts": {
+    "bootstrap": "cd server && npm ci && cd ../client && npm ci",
+    "start:dev": "concurrently \"cd server && npm run dev\" \"cd client && npm run dev\""
+  },
+  "devDependencies": {
+    "concurrently": "^8.0.0"
+  }
+}

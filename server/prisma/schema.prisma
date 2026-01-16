@@ -1,0 +1,128 @@
+// Prisma schema — uses SQLite for local dev; switch to PostgreSQL in production by updating provider and url
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  // Use DATABASE_URL env when provided, otherwise default to a local sqlite dev.db
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  name      String?
+  role      String   @default("user")
+  createdAt DateTime @default(now())
+}
+
+model Feedback {
+  id        Int      @id @default(autoincrement())
+  message   String
+  userId    Int?
+  createdAt DateTime @default(now())
+}
+
+model Session {
+  id        Int      @id @default(autoincrement())
+  title     String
+  start     DateTime
+  zoomId    String?
+  createdAt DateTime @default(now())
+}
+
+model Message {
+  id        Int      @id @default(autoincrement())
+  fromId    Int
+  toId      Int
+  text      String  
+  createdAt DateTime @default(now())
+
+  @@index([fromId])
+  @@index([toId])
+}
+
+model Payment {
+  id        Int      @id @default(autoincrement())
+  reference String   @unique
+  amount    Int
+  currency  String   @default("NGN")
+  status    String
+  email     String
+  // SQLite may not support native Json type in some environments; store as stringified JSON
+  metadata  String?
+  createdAt DateTime @default(now())
+}
+
+model VerificationCode {
+  id        Int      @id @default(autoincrement())
+  email     String
+  code      String
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([email])
+}
+
+model PasswordResetToken {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  token     String   @unique
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model Reminder {
+  id        Int      @id @default(autoincrement())
+  userId    Int?
+  sessionId Int?
+  text      String
+  time      DateTime?
+  completed Boolean  @default(false)
+  repeat    String?  // none|daily|weekly
+  snoozeUntil DateTime?
+  enabled   Boolean  @default(true)
+  triggered Boolean  @default(false)
+  createdAt DateTime @default(now())
+  @@index([sessionId])
+}
+
+model PushSubscription {
+  id        Int      @id @default(autoincrement())
+  userId    Int?
+  endpoint  String   @unique
+  keys      String?  // store JSON as string (p256dh and auth keys)
+  createdAt DateTime @default(now())
+  @@index([userId])
+}
+
+model VirtualEvent {
+  id        Int      @id @default(autoincrement())
+  remoteId  String?  @unique
+  title     String
+  sport     String?  // e.g., football, basketball
+  start     DateTime
+  duration  Int?     // minutes
+  status    String   @default("scheduled") // scheduled|live|finished|cancelled
+  data      String?  // JSON string for storing scores or extra fields
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  updates   VirtualEventUpdate[]
+}
+
+model VirtualEventUpdate {
+  id        Int      @id @default(autoincrement())
+  eventId   Int
+  payload   String   // JSON string containing the update (score, commentary)
+  createdAt DateTime @default(now())
+
+  event     VirtualEvent @relation(fields: [eventId], references: [id])
+
+  @@index([eventId])
+}

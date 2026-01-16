@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: bluephes-server
+    env: node
+    plan: free
+    region: oregon
+    buildCommand: "npm install && npx prisma generate"
+    startCommand: "node src/index.js"
+    envVars:
+      - key: DATABASE_URL
+        sync: true
+      - key: JWT_SECRET
+        sync: true
+      - key: PAYSTACK_SECRET
+        sync: true
+      - key: PAYSTACK_PUBLIC_KEY
+        sync: true
+      - key: NEXT_PUBLIC_FRONTEND_URL
+        sync: true
+      - key: NODE_ENV
+        value: production
